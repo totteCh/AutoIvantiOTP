@@ -56,6 +56,7 @@ async function generateToken() {
     return token
   } catch (error: unknown) {
     console.error(error)
+    await displayNotification(`Failed to generate token: ${error}`)
   }
 }
 
@@ -77,13 +78,28 @@ end tell
   osascript.execute(script, (err, result) => {
     if (err) {
       console.error('Error executing AppleScript:', err)
+      displayNotification(`Failed to paste OTP: ${err}`)
     } else {
       console.log('Token pasted successfully')
     }
   })
 }
 
+async function displayNotification(message: string) {
+  return new Promise<void>((resolve, reject) => {
+    const script = `display notification "${message}" with title "AutoIvantiOTP"`
+    osascript.execute(script, (err, result) => {
+      if (err) {
+        console.error('Error executing AppleScript:', err)
+        return reject(err)
+      }
+      resolve()
+    })
+  })
+}
+
 async function main() {
+  await displayNotification('Generating OTP...')
   // Call the generateToken function to initiate the process
   const token = await generateToken()
   if (!token) {
